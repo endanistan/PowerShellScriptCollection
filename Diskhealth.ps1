@@ -39,12 +39,16 @@ catch {
 }
 
 
-
-if ($procentvärde -ge $tröskel) {
-    Add-Content -Path $varning -Value "En eller flera diskar nästan full(a). $(Get-Date)"
+Try {
+    if ($procentvärde -ge $tröskel) {
+        Add-Content -Path $varning -Value "En eller flera diskar nästan full(a). $(Get-Date)"
+    }
+    else {
+        Write-Output "Tillfredställande mängd diskutrymme"
+    }
 }
-else {
-    Write-Output "Tillfredställande mängd diskutrymme"
+catch {
+    Add-Content -Path $loggfil2 -Value "Kan inte beräkna diskutrymmeslogik $(Get-Date)"
 }
 
 
