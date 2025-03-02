@@ -24,7 +24,6 @@ for ($i = 1; $i -le 2; $i++) {
     Connect-MgGraph -scopes "user.readwrite.all, group.readwrite.all" -NoWelcome  
     }
     catch {
-    $i
     Write-Output "Could not connect to microsoft graph... trying to change execution policy..."
         try {
             Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
