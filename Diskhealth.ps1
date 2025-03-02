@@ -1,6 +1,7 @@
 $tröskel = 80
-$loggfil = "C:\Scriptloggar\diskhealth.csv"
-$loggfil2 = "C:\Scriptloggar\diskhealth.txt"
+$temp = $env:TEMP
+$Loggfil = Join-Path -Path $temp -ChildPath "diskhealth.csv"
+$Loggfil2 = Join-Path -Path $temp -ChildPath "diskhealth.txt"
 $varning = "C:\Users\danie\Desktop\Diskvarning.txt"
 $volyminfo = @()
 
