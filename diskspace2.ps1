@@ -9,13 +9,15 @@ param (
 )
 
     #Collects all potential data.
-    $drives = Get-Volume | Where-Object {$_.Driveletter -ne $null} -ErrorAction Inquire
+    $drives = Get-Volume | Where-Object {$_.Driveletter -ne $null} -ErrorAction Stop
 
 #Loops data into array $everything based on set parameters.
 foreach ($volume in $drives) {
     #Ignores disks with a driveletters that are empty. Mainly to avoid potential issues with mounted dvd-drives.
     if ($null -eq $volume.Size -or $volume.Size -eq 0) {
+
         continue
+
     }
 
         $everything = @()
@@ -29,38 +31,38 @@ foreach ($volume in $drives) {
             if ($free) {
             
                 $everything += [PSCustomObject]@{
-                    "Driveletter" = $volume.Driveletter
-                    "Free drive capacity %" = $remaining
-                }
+                                "Driveletter" = $volume.Driveletter
+                                "Free drive capacity %" = $remaining
+                                }
 
             }
     
             if ($used) {
             
                 $everything += [PSCustomObject]@{
-                    "Driveletter" = $volume.Driveletter
-                    "Used drive capacity %" = $usedp
-                }
+                                "Driveletter" = $volume.Driveletter
+                                "Used drive capacity %" = $usedp
+                                }
 
             }  
     
             if ($max) {
             
                 $everything += [PSCustomObject]@{
-                    "Driveletter" = $volume.Driveletter
-                    "Drive max capacity gb" = $wholegb
-                }
+                                "Driveletter" = $volume.Driveletter
+                                "Drive max capacity gb" = $wholegb
+                                }
 
             }
 
             if (-not ($free -or $used -or $max)) {
 
                 $everything += [PSCustomObject]@{
-                    "Driveletter" = $volume.Driveletter
-                    "Drive max capacity gb" = $wholegb
-                    "Used drive capacity %" = $usedp
-                    "Free drive capacity %" = $remaining
-                }
+                                "Driveletter" = $volume.Driveletter
+                                "Drive max capacity gb" = $wholegb
+                                "Used drive capacity %" = $usedp
+                                "Free drive capacity %" = $remaining
+                                }
 
         }
     
