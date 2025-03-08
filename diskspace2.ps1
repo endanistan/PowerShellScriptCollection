@@ -48,7 +48,7 @@ foreach ($volume in $drives) {
             
                 $everything += [PSCustomObject]@{
                     "Driveletter" = $volume.Driveletter
-                    "Drive max capacity" = $wholegb
+                    "Drive max capacity gb" = $wholegb
                 }
 
             }
