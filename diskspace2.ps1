@@ -6,35 +6,48 @@ param (
 
 $drives = Get-Volume | Where-Object {$_.Driveletter -ne $null}
 
-try {
+foreach ($volume in $drives) {
+    $everything = @()
+    $whole = $volume.Size
+    $part = $volume.SizeRemaining
+    $remaining = ($part / $whole * 100)
+    $usednr = ($volume.Size - $volume.SizeRemaining)
+    $usedp = ($usednr / $volume.Size * 100)
+    $wholegb = $volume.Size/1gb
+
     if ($free) {
-        foreach ($volume in $drives) {
-            $whole = $volume.Size
-            $part = $volume.SizeRemaining
-            $remaining = ($part / $whole * 100)
-            Write-Output ""$volume.Driveletter": $([math]::Round($remaining, 0))%"
+        $everything += [PSCustomObject]@{
+            "Driveletter" = $volume.Driveletter
+            "Free drive capacity %" = $remaining
         }
+            Write-Output $everything 
     }
     
     if ($used) {
-        foreach ($volume in $Drives) {
-            $usednr = ($volume.Size - $volume.SizeRemaining)
-            $usedp = ($usednr / $volume.Size * 100)
-            Write-Output ""$volume.Driveletter": $([math]::Round($usedp, 0))%"
+        $everything += [PSCustomObject]@{
+            "Driveletter" = $volume.Driveletter
+            "Used drive capacity %" = $usedp
         }
-    }  
+            Write-Output $everything 
+        }  
     
     if ($max) {
-        foreach ($volume in $drives) {
-            $whole = $volume.Size/1gb
-            Write-Output ""$volume.Driveletter": $([math]::Round($whole, 0))gb"
+        $everything += [PSCustomObject]@{
+            "Driveletter" = $volume.Driveletter
+            "Drive max capacity" = $wholegb
         }
+            Write-Output $everything 
     }
     
     if (-not ($free -or $used -or $max)) {
-        Write-Output "Specify: 'free', 'used' or 'max'"
+
+        $everything += [PSCustomObject]@{
+            "Driveletter" = $volume.Driveletter
+            "Drive max capacity" = $wholegb
+            "Used drive capacity %" = $usedp
+            "Free drive capacity %" = $remaining
+        }
+            Write-Output $everything 
     }
-}
-catch {
-    Write-Warning "No volumes with assigned driveletters found."
+                   
 }
