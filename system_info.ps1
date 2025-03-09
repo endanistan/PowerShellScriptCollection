@@ -1,3 +1,4 @@
+#Collects hardware info
 $system = @()
 $system += [PSCustomObject]@{
     "BIOS V." = (Get-CimInstance -Class Win32_BIOS).SMBIOSBIOSVersion
