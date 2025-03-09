@@ -15,7 +15,7 @@ try {
     }
 }
 catch {
-    Write-Output "Could not install Microsoft Graph."
+    Write-Warning "Could not install Microsoft Graph."
 }
 
 #Connects user to microsoft.graph and if it fails tries again after changing ExecutionPolicy.
@@ -30,7 +30,7 @@ for ($i = 1; $i -le 2; $i++) {
             Write-Output "ExecutionPolicy set to RemoteSigned. Trying to reconnect to microsoft graph."
         }
         catch {
-            Write-Output "ExecutionPolicy could not be changed, aborting script. Is pwsh.exe running as administrator?"
+            Write-Warning "ExecutionPolicy could not be changed, aborting script. Is pwsh.exe running as administrator?"
         }
     
     }
@@ -52,14 +52,14 @@ try {
         -PasswordProfile $PWProfile ` -AccountEnabled `
 }
 catch {
-    Read-Host "Unexpected error, $DisplayName not added to Microsoft Entra."
+    Read-Warning "Unexpected error, $DisplayName not added to Microsoft Entra."
 }
 
 
 #Assigns the user to an existing group.
 #This script can not create new a MgGroup.
 if (-not $Group) {
-        $Group = Read-Host "User added without group assignment." -AsSecureString
+        $Group = Read-Host "$DisplayName added without group assignment." -AsSecureString
 }
 else { try {
         $AddToGroup = Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}
@@ -67,7 +67,7 @@ else { try {
         New-MgGroupMember -GroupId $AddToGroup.Id -DirectoryObjectId $AddThisUser.Id  
     }
     catch {
-        Read-Host "Unexpected error. User added, but without group assignment."
+        Read-Warning "Unexpected error. $DisplayName added, but without group assignment."
     } 
    
 }
