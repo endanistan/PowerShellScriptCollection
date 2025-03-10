@@ -59,7 +59,7 @@ catch {
 #Assigns the user to an existing group.
 #This script can not create new a MgGroup.
 if (-not $Group) {
-        $Group = Read-Host "$DisplayName added without group assignment." -AsSecureString
+        $Group = Read-Host "$DisplayName added without group assignment."
 }
 else { try {
         $AddToGroup = Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}
