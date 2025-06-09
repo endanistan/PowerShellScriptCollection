@@ -13,9 +13,6 @@ Write-Host "Initiating laps script..."
 $UserName = "local-admin"
 $User = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
 
-#Unsure if this is needed, but it doesn't hurt. It worked without it on my vm.
-Add-Type -AssemblyName System.Web
-
 if ($null -eq $User) {   
     #Creates a random password, don't worry, LAPS will catch it and store it in Entra ID.
     $Password = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | % { [char]$_ })
