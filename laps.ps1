@@ -1,6 +1,7 @@
 #LAPS script to create a local admin user on Windows 10/11 devices.
 #This script is intended to be run through Intune as a Platform Script.
 #"Run this script using the logged on credentials" and "Enforce script signature check" should be set to "No"
+#Remember to change UserName (Row 13) to fit your organisations name-standard.
 
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
@@ -12,7 +13,6 @@ Write-Host "Initiating laps script..."
 
 $UserName = "local-admin"
 $User = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
-
 if ($null -eq $User) {   
     #Creates a random password, don't worry, LAPS will catch it and store it in Entra ID.
     $Password = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | % { [char]$_ })
