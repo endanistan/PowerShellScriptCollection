@@ -5,7 +5,7 @@
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
 $log = "$ENV:TEMP\laps.log"
-Start-Transcript -Path "$log" -Append
+Start-Transcript -Path $log -Append
 
 Get-Date
 Write-Host "Initiating laps script..."
@@ -22,7 +22,7 @@ if ($null -eq $User) {
         New-LocalUser -Name $UserName -Password $SecurePassword -FullName "Local Admin" -Description "LAPS-managed administrator"
     }
     catch {
-        Write-Host "Failed to create local admin, $UserName. Error: $_" -ForegroundColor Red
+        Write-Host "Failed to create local admin, $UserName." -ForegroundColor Red
     }
     $AdminGroup = (Get-CimInstance -Class Win32_Group | Where-Object { $_.SID -eq "S-1-5-32-544" }).Name
     $AdminInGroup = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName*" } -ErrorAction SilentlyContinue
