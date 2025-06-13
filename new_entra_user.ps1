@@ -5,7 +5,6 @@ param (
     [Parameter(Mandatory = $true)][String]$UserPrincipalName,
     [Parameter(Mandatory = $true)][String]$PWD,
     [Parameter(Mandatory = $false)][String[]]$Groups
-
 )  
 
 if  (-not (Get-Module -listAvailable -Name Microsoft.Graph)) {
@@ -30,7 +29,7 @@ Connect-MgGraph -tenantid $tenantid -scopes "user.readwrite.all, group.readwrite
         -UserPrincipalName $UserPrincipalName `
         -GivenName $GivenName `
         -Surname $Surname `
-        -PasswordProfile $Passwordprofile ` -AccountEnabled `
+        -PasswordProfile $passwordprofile ` -AccountEnabled `
 
 
     if ($groups) {
