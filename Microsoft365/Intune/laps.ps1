@@ -4,42 +4,51 @@
 
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 
+function GeneratePassword {
+    $letterNumberArray = @('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '@', '#', '$', '%', '^', '&', '*')
+    for (($counter = 0); $counter -lt 20; $counter++) {
+        $randomCharacter = get-random -InputObject $letterNumberArray
+        $randomString = $randomString + $randomCharacter
+    }
+    return $randomString
+}
+
 $log = "$ENV:TEMP\laps.log"
 Start-Transcript -Path $log -Append
 
 Write-Host "Initiating laps script..."
 
+$Password = GeneratePassword
+$SecurePassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
 $UserName = "local-admin"
+$AdminGroup = (Get-CimInstance -Class Win32_Group | Where-Object { $_.SID -eq "S-1-5-32-544" }).Name
 $User = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
 
-if ($null -eq $User) {   
-    #Creates a random password, don't worry, LAPS will catch it and store it in Entra ID.
-    $Password = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | % { [char]$_ })
-    $SecurePassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
-
-    New-LocalUser -Name $UserName -Password $SecurePassword -FullName "Local Admin" -Description "LAPS-managed administrator"
-
-    $AdminGroup = (Get-CimInstance -Class Win32_Group | Where-Object { $_.SID -eq "S-1-5-32-544" }).Name
-
-    $AdminInGroup = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName" } -ErrorAction SilentlyContinue
-    if ($AdminInGroup -like "*$UserName") {
-        Write-Host "Local admin, $UserName, already exists in the local administrators group." #This line should realistically never be reached.
-    }
-    else {
-        $User = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
-        if ($User) {
-                Add-LocalGroupMember -Group $AdminGroup -Member $UserName 
-        }
-    }
+if ($null -eq $User) {
+    Write-Host "Creating local admin user: $UserName"
+    New-LocalUser -Name $UserName -Password $SecurePassword -FullName "Laps Admin" -Description "LAPS-managed administrator"
 }
-
 else {
     Write-Host "Local admin, $UserName, already exists."
 }
 
 
 $AdminInGroup = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName" } -ErrorAction SilentlyContinue
-if ($AdminInGroup -like "*$UserName") {
+if ($AdminInGroup) {
+    Write-Host "Local admin, $UserName, already exists in the local administrators group." #This line should realistically never be reached.
+    Break
+}
+else {
+    $User2 = Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue
+    if ($User2) {
+        Write-Host "Adding local admin, $UserName, to the local administrators group."
+        Add-LocalGroupMember -Group $AdminGroup -Member $UserName 
+    }
+}
+
+
+$AdminInGroupExit = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName" } -ErrorAction SilentlyContinue
+if ($AdminInGroupExit -like "*$UserName") {
     Write-Host "Local admin, $UserName, exists and is a member of the local administrators group."
 }
 else {
