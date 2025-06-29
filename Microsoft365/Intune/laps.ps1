@@ -52,7 +52,7 @@ if ($AdminInGroupExit -like "*$UserName") {
     Write-Host "Local admin, $UserName, exists and is a member of the local administrators group."
 }
 else {
-    Write-Host "ERROR: Local admin, $UserName, is NOT part of the administrators group" #If this line is reached, start looking at line 22.
+    Write-Host "ERROR: Local admin, $UserName, is NOT part of the administrators group" #If this line is reached, start looking at line 24.
 }
 
 Stop-Transcript
