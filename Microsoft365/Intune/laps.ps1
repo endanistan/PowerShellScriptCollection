@@ -47,8 +47,8 @@ else {
 }
 
 
-$AdminInGroupExit = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName" } -ErrorAction SilentlyContinue
-if ($AdminInGroupExit -like "*$UserName") {
+$AdminInGroupExist = Get-LocalGroupMember -Group $AdminGroup | Where-Object { $_.Name -like "*$UserName" } -ErrorAction SilentlyContinue
+if ($AdminInGroupExist -like "*$UserName") {
     Write-Host "Local admin, $UserName, exists and is a member of the local administrators group."
 }
 else {
