@@ -1,5 +1,5 @@
 #Sort exchange mailboxes for sharedmailboxes only and download the csv file to a local path.
-connect-mggraph -tenantid "<tenant id>" -scope "User.ReadW.All" -nowelcome
+connect-mggraph -tenantid "<tenant id>" -scope "User.Read.All" -nowelcome
 
 $csvpath = "<path to csv file>"
 $ids = import-csv -path $csvpath | select-object -expandproperty objectid
