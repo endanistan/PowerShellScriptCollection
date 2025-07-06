@@ -8,8 +8,8 @@ param (
     function UserPassword {
         $letterNumberArray = @('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '!', '@', '#', '$', '%', '^', '&', '*')
         for (($counter = 0); $counter -lt 20; $counter++) {
-        $randomCharacter = get-random -InputObject $letterNumberArray
-        $randomString = $randomString + $randomCharacter
+            $randomCharacter = get-random -InputObject $letterNumberArray
+            $randomString = $randomString + $randomCharacter
         }
         Set-Clipboard -value "$randomString"
         return $randomString
@@ -36,9 +36,9 @@ param (
     
     function UserGroups {
         foreach ($Group in $Groups) {
-        $AddToGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}).id
-        $AddThisUser = (Get-MgUser | Where-Object {$_.DisplayName -eq "$DN"}).id
-        New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser
+            $AddToGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}).id
+            $AddThisUser = (Get-MgUser | Where-Object {$_.DisplayName -eq "$DN"}).id
+            New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser
         }
     }
 
