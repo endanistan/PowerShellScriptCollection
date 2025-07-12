@@ -1,4 +1,4 @@
-#Not ideal; Just a fun possible solution for an enduser who ran into pc issue because they never turned of their pc.
+#Not ideal; Just a fun possible solution for an end user who ran into pc issue because they never turned off their pc.
 $log = "$ENV:TEMP\task_restart.log"
 test-path $log
 if ($log) {
