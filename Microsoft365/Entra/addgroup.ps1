@@ -28,7 +28,7 @@ If ($GroupCSV) {
         return
     }
     else {
-        Connect-MgGraph -tenantid "dbf3c20a-632e-412d-b396-82b07b103467" -scopes "user.readwrite.all", "group.read.all" -NoWelcome
+        Connect-MgGraph -tenantid "<your tenant id>" -scopes "user.readwrite.all", "group.read.all" -NoWelcome
         UserGroups
     }
 } else {
