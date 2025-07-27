@@ -77,7 +77,6 @@ if ($DN -and $UPN) {
         Break
     } else {
         Write-Host "User $DN does not exist, proceeding to create user..." -ForegroundColor Cyan
-        Connect-MgGraph -tenantid "dbf3c20a-632e-412d-b396-82b07b103467" -scopes "user.readwrite.all", "group.readwrite.all" -NoWelcome
         NewEntraUser
     }
 } else {
