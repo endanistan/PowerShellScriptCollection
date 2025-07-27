@@ -26,7 +26,7 @@ param (
             }
     }
 
-$TenantId = ""
+$TenantId = "" #Add tenantid
 
 If ($GroupCSV) {
     if (-not (Test-Path -Path $GroupCSV)) {

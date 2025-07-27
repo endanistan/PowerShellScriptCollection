@@ -66,7 +66,7 @@ param (
     }
 
 if ($DN -or $UPN -or $Groups) { 
-    $TenantId = ""
+    $TenantId = "" #Add tenantid
     Connect-MgGraph -tenantid $TenantId -scopes "user.readwrite.all", "group.read.all", "RoleManagement.ReadWrite.Directory" -NoWelcome
 }
 
