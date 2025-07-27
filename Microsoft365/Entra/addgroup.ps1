@@ -14,19 +14,19 @@ param (
             } else {
                 New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser -ErrorAction SilentlyContinue
             }
-                foreach ($Group in $Groups) {
-                    $CheckThisGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq $Group.DisplayName}).id
-                    $IsUserInGroup = Get-MgGroupMemberAsUser -groupid $CheckThisGroup | Where-Object {$_.DisplayName -eq "$User"}
-                        if ($IsUserinGroup) {
-                            Write-Host "$User have been added to the group" $Group.Displayname -ForegroundColor Green
-                        } else {
-                            Write-Host "$User has not been added to the group" $Group.DisplayName -ForegroundColor Yellow
-                        }
-                }
         }
+            foreach ($Group in $Groups) {
+                $CheckThisGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq $Group.DisplayName}).id
+                $IsUserInGroup = Get-MgGroupMemberAsUser -groupid $CheckThisGroup | Where-Object {$_.DisplayName -eq "$User"}
+                    if ($IsUserinGroup) {
+                        Write-Host "$User have been added to the group" $Group.Displayname -ForegroundColor Green
+                    } else {
+                        Write-Host "$User has not been added to the group" $Group.DisplayName -ForegroundColor Yellow
+                    }
+            }
     }
 
-$TenantId = "tenant-id"
+$TenantId = "dbf3c20a-632e-412d-b396-82b07b103467"
 
 If ($GroupCSV) {
     if (-not (Test-Path -Path $GroupCSV)) {
