@@ -33,7 +33,6 @@ $VMStorageLocation = "$DiskLabel:\Server Lab.Environment\Virtual Machine Storage
 			Add-VMNetworkAdapter -VMName "$server" -SwitchName "WLAN" | Set-VMNetworkAdapter -MacAddressSpoofing On
 			Set-VMKeyProtector -VMName "$server" -NewLocalKeyProtector
 			Enable-VMTPM -VMName "$server"
-			Get-VM -VMName "$server" | Mount-VHD -Path "$VMStorageLocation\$server.vhdx" -passthru
 		}
 	}
 	
@@ -48,3 +47,4 @@ $VMStorageLocation = "$DiskLabel:\Server Lab.Environment\Virtual Machine Storage
 	}
 	
 if ($Create-Servers) { Create-VMServers } if ($Delete-Servers) { Delete-VMServers } else { Create-Env }
+
