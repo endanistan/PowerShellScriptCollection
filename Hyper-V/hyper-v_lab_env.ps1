@@ -29,7 +29,7 @@ $VMStorageLocation = "${DiskLabel}:\Server Lab.Environment\Virtual Machine Stora
 			Add-VMDvdDrive -VMName "$server" -Path "$ISOLocation"
 			Set-VMProcessor -VMName "$server" -ExposeVirtualizationExtensions $true
 			$fw  = Get-VMFirmware -VMName $server
-			$DVDBoot = $fw.BootOrder | Where-Object { $_.FirmwarePath -like "*scsi(0,1)" }
+			$DVDBoot = $fw.BootOrder | Where-Object { $_.FirmwarePath -like "*scsi(0,1)*" }
 			Set-VMFirmware -VMName $server -EnableSecureBoot On -FirstBootDevice $DVDBoot
 			Add-VMNetworkAdapter -VMName "$server" -SwitchName "WLAN" | Set-VMNetworkAdapter -MacAddressSpoofing On
 			Set-VMKeyProtector -VMName "$server" -NewLocalKeyProtector
@@ -58,3 +58,4 @@ Delete-VMServers
 if ($CreateEnv) {
 Create-Env 
 }
+
