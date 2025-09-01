@@ -52,7 +52,6 @@ param (
 				$CSVAddThisUser = (Get-MgUser -Filter "displayName eq '$DN'").Id
 				if (-not $CSVAddToGroup) {
 					Write-Warning "The group $Group could not be found, skipping..."
-					continue
 				} else {
 					Write-Host "Adding $DN to $Group" -Foreground Cyan
 					New-MgGroupMember -GroupId $CSVAddToGroup -DirectoryObjectId $CSVAddThisUser -ErrorAction SilentlyContinue
@@ -64,7 +63,6 @@ param (
 				$AddThisUser = (Get-MgUser | Where-Object {$_.DisplayName -eq "$DN"}).id
 				if (-not $AddToGroup) {
 					Write-Warning "The group $Group could not be found, skipping..."
-					continue
 				} else {
 					Write-Host "Adding $DN to $Group" -Foreground Cyan
 					New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser -ErrorAction SilentlyContinue
@@ -74,51 +72,52 @@ param (
 	}
 
 
-if ($DN -and $UPN) {
-	$SecretValue = ""
-	#$ClientSecret = ""
-	$ClientID = ""
-	$TenantID = ""
+	if ($DN -and $UPN) {
+		$SecretValue = ""
+		#$ClientSecret = ""
+		$ClientID = ""
+		$TenantID = ""
 
-	$body = @{
-		grant_type    = "client_credentials"
-		scope         = "https://graph.microsoft.com/.default"
-		client_id     = $ClientID
-		client_secret = $SecretValue
-	}
-	$headers = @{ "Content-Type" = "application/x-www-form-urlencoded" }
-	$TokenResponse = Invoke-RestMethod `
-		-Uri "https://login.microsoftonline.com/$TenantID/oauth2/v2.0/token" `
-		-Method Post `
-		-Body $body `
-		-Headers $headers
-	$AccessToken = $TokenResponse.access_token
-	$SecureToken = ConvertTo-SecureString $AccessToken -AsPlainText -Force
+		$body = @{
+			grant_type    = "client_credentials"
+			scope         = "https://graph.microsoft.com/.default"
+			client_id     = $ClientID
+			client_secret = $SecretValue
+		}
+		$headers = @{ "Content-Type" = "application/x-www-form-urlencoded" }
+		$TokenResponse = Invoke-RestMethod `
+			-Uri "https://login.microsoftonline.com/$TenantID/oauth2/v2.0/token" `
+			-Method Post `
+			-Body $body `
+			-Headers $headers
+		$AccessToken = $TokenResponse.access_token
+		$SecureToken = ConvertTo-SecureString $AccessToken -AsPlainText -Force
 	
-	Write-Host "Attempting to connect to Microsoft Graph..." -ForeGroundColor Magenta
-	Connect-MgGraph -AccessToken $SecureToken -NoWelcome
+		Write-Host "Attempting to connect to Microsoft Graph..." -ForeGroundColor Magenta
+		Connect-MgGraph -AccessToken $SecureToken -NoWelcome
 	
-    $CheckUPN = Get-MgUser -Filter "UserPrincipalName eq '$UPN'" -ErrorAction SilentlyContinue
-    if ($CheckUPN) {
-        Write-Host "User $UPN already exists, preceeding to add groups" -ForegroundColor Red
-    } else {
-        Write-Host "User $DN does not exist, proceeding to create user..." -ForegroundColor Cyan
-        NewEntraUser
-    }
+		$CheckUPN = Get-MgUser -Filter "UserPrincipalName eq '$UPN'" -ErrorAction SilentlyContinue
+		if ($CheckUPN) {
+			Write-Host "User $UPN already exists, preceeding to add groups" -ForegroundColor Red
+		} else {
+			Write-Host "User $DN does not exist, proceeding to create user..." -ForegroundColor Cyan
+			NewEntraUser
+		}
 	
-	if ($null -eq $Groups -and $null -eq $CSVList) {
-		Write-Warning "No groups specified!"
+		if ($null -eq $Groups -and $null -eq $CSVList) {
+			Write-Warning "No groups specified!"
+		}
+		if ($Groups) {
+			UserGroups
+		}
+		if ($CSVList) {
+			UserGroups -CSV
+		}
+	} else {
+		Write-Warning Specify DisplayName (DN), and UserPrincipalName (UPN)! 
 	}
-	if ($Groups) {
-		UserGroups
-	}
-	if ($CSVList) {
-		UserGroups -CSV
-	}
-} else { Write-Warning Specify DisplayName (DN), and UserPrincipalName (UPN)! }
-
-
-Disconnect-MgGraph
-Write-Host "Script finished. Disconnected Graph..." -ForegroundColor Magenta
-Start-Sleep -seconds 2
-Write-Host "Graph disconnected." -ForegroundColor Magenta
+	
+	Disconnect-MgGraph
+	Write-Host "Script finished. Disconnected Graph..." -ForegroundColor Magenta
+	Start-Sleep -seconds 2
+	Write-Host "Graph disconnected." -ForegroundColor Magenta
