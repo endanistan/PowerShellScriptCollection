@@ -114,7 +114,7 @@ param (
 			UserGroups -CSV
 		}
 	} else {
-		Write-Warning Specify DisplayName (DN), and UserPrincipalName (UPN)! 
+		"Write-Warning Specify DisplayName (DN), and UserPrincipalName (UPN)!" 
 	}
 	
 	Disconnect-MgGraph
