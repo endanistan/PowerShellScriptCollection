@@ -10,11 +10,12 @@ param (
         $nouns = @("Goldfish", "Froglet", "Bumblebee", "Pig", "Capybara", "Toad", "Rabbit", "Lamb", "Crab", "Shrimp", "Starfish")
         $numbers = @("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
         $characters = @("#", "%", "!", "?", "+", "\", "*", "$", "/")
-        $randomAdjective = get-random -InputObject $adjectives
-        $randomNoun = get-random -InputObject $nouns
-        $randomNumber = get-random -InputObject $numbers
-        $randomCharacter = get-random -InputObject $characters
-        $randomEasyToType = "$randomAdjective" + "$randomNoun" + "$randomNumber" + "$randomCharacter"
+		$randomAdjective  = Get-Random $adjectives
+		$randomNoun       = Get-Random $nouns
+		$randomNumber     = Get-Random $numbers
+		$randomCharacter  = Get-Random $characters
+		$randomEasyToType = -join ($randomAdjective, $randomNoun, $randomNumber, $randomCharacter)
+
         Set-Clipboard -Value $randomEasyToType
         return $randomEasyToType
     }
@@ -45,30 +46,24 @@ param (
 		param (
 		[switch]$CSV
 		)
-		if ($CSV) {
-			$GroupsFromCsv = Import-Csv -Path $CSVList -Delimiter ";" | Select-Object -ExpandProperty DisplayName
-			foreach ($Group in $GroupsFromCsv) {
-				$CSVAddToGroup = (Get-MgGroup -Filter "displayName eq '$Group'").Id
-				$CSVAddThisUser = (Get-MgUser -Filter "displayName eq '$DN'").Id
-				if (-not $CSVAddToGroup) {
-					Write-Warning "The group $Group could not be found, skipping..."
-				} else {
-					Write-Host "Adding $DN to $Group" -Foreground Cyan
-					New-MgGroupMember -GroupId $CSVAddToGroup -DirectoryObjectId $CSVAddThisUser -ErrorAction SilentlyContinue
-				}
+			if ($CSV) {
+				$Groups = Import-Csv -Path $CSVList -Delimiter ";" | Select-Object -ExpandProperty DisplayName
 			}
-		} else {		
-			foreach ($Group in $Groups) {
-				$AddToGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}).id
-				$AddThisUser = (Get-MgUser | Where-Object {$_.DisplayName -eq "$DN"}).id
-				if (-not $AddToGroup) {
-					Write-Warning "The group $Group could not be found, skipping..."
-				} else {
-					Write-Host "Adding $DN to $Group" -Foreground Cyan
-					New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser -ErrorAction SilentlyContinue
+				foreach ($Group in $Groups) {
+					$AddToGroup = (Get-MgGroup | Where-Object {$_.DisplayName -eq "$Group"}).id
+					$AddThisUser = (Get-MgUser | Where-Object {$_.DisplayName -eq "$DN"}).id
+					if (-not $AddToGroup) {
+						Write-Warning "The group $Group could not be found, skipping..."
+					} else {
+						Write-Host "Adding $DN to $Group" -Foregroundcolor Cyan
+						New-MgGroupMember -GroupId $AddToGroup -DirectoryObjectId $AddThisUser -ErrorAction SilentlyContinue
+						if (Get-MgGroupMemberasuser -GroupId $AddtoGroup | Where-Object {$_.DisplayName -eq $DN }) {
+							Write-Host "$DN has been added to $Group" -Foregroundcolor Green
+						} else {
+							Write-Warning "$DN has not been added to $Group"
+						}
+					}
 				}
-			}
-		}
 	}
 
 
@@ -114,10 +109,10 @@ param (
 			UserGroups -CSV
 		}
 	} else {
-		"Write-Warning Specify DisplayName (DN), and UserPrincipalName (UPN)!" 
+		Write-Warning "Specify DisplayName (DN), and UserPrincipalName (UPN)!"
 	}
 	
 	Disconnect-MgGraph
-	Write-Host "Script finished. Disconnected Graph..." -ForegroundColor Magenta
+	Write-Host "Script finished. Disconnecting MgGraph..." -ForegroundColor Magenta
 	Start-Sleep -seconds 2
 	Write-Host "Graph disconnected." -ForegroundColor Magenta
