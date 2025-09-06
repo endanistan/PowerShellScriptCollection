@@ -1,4 +1,5 @@
 ﻿#My prefered Connect-MgGraph authentication method is using an access token from different Graph app for each purpose for granular permissions
+#Least privilege for this script is Group.Read.All & Group.ReadWrite.All
 #This script changes the Source of Authority of a group from OnPremises to Cloud
 $SecretValue = ""
 $ClientID = ""
@@ -27,4 +28,5 @@ Invoke-MgGraphrequest -method GET -uri "https://graph.microsoft.com/beta/groups/
 
 #Edit {GroupID} with your Group objectID
 #Change Source of Authority to Cloud
+
 Invoke-MgGraphrequest -method patch -uri "https://graph.microsoft.com/beta/groups/{6f534c50-bf87-4625-813f-b9160dc39e45}/onPremisesSyncBehavior" -body '{ "isCloudManaged": true }' 
