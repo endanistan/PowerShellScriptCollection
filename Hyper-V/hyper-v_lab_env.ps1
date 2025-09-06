@@ -1,3 +1,4 @@
+#largely untested and WIP
 Param (
 	[switch]$CreateEnv,
     [switch]$CreateServers,
@@ -58,4 +59,5 @@ Delete-VMServers
 if ($CreateEnv) {
 Create-Env 
 }
+
 
