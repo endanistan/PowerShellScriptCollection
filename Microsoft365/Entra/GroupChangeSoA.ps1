@@ -1,4 +1,3 @@
-﻿#My prefered Connect-MgGraph authentication method is using an access token from different Graph app for each purpose for granular permissions
 #Least privilege for this script is Group.Read.All & Group.ReadWrite.All
 #This script changes the Source of Authority of a group from OnPremises to Cloud
 $SecretValue = ""
