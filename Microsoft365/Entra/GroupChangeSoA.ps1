@@ -1,8 +1,20 @@
-#Least privilege for this script is Group.Read.All & Group.ReadWrite.All
-#This script changes the Source of Authority of a group from OnPremises to Cloud
-$SecretValue = ""
-$ClientID = ""
-$TenantID = ""
+﻿#This script changes the Source of Authority of a group from OnPremises to Cloud
+#Required permissions: Group.Read.All & Group.ReadWrite.All
+#Yes, it's over engineered.
+Param (
+    [Parameter(Mandatory = $True)][string]$Group,
+    [Parameter(Mandatory = $True)][int]$GraphAppId
+)
+
+Begin {
+$Key = (Import-Csv `
+    -Path "$ENV:USERPROFILE\OneDrive\Dokument\PowerShell\Scripts\Keys\Wideopen.csv" `
+    -Delimiter ";")[$GraphAppId]
+
+$SecretValue = "$($Key.Secret -split ","[0])"
+$ClientID = "$($Key.ClientID)"
+$TenantID = "$($Key.TenantID)"
+
 
 $Body = @{
     grant_type    = "client_credentials"
@@ -18,14 +30,47 @@ $Body = @{
         -Headers $Headers
 $AccessToken = $TokenResponse.access_token
 $SecureToken = ConvertTo-SecureString $AccessToken -AsPlainText -Force
+
+
+Write-Host "Attempting to sign in to $($Key.Name)..."
 Connect-MgGraph -AccessToken $SecureToken -NoWelcome
 
 
-#Edit {GroupID} with your Group objectID
-#Check current Source of Authority
-Invoke-MgGraphrequest -method GET -uri "https://graph.microsoft.com/beta/groups/{GroupID}/onPremisesSyncBehavior?$select=isCloudManaged"
+    $GroupId = (Get-MgGroup -Filter "DisplayName eq '$Group'").Id
 
-#Edit {GroupID} with your Group objectID
-#Change Source of Authority to Cloud
 
-Invoke-MgGraphrequest -method patch -uri "https://graph.microsoft.com/beta/groups/{6f534c50-bf87-4625-813f-b9160dc39e45}/onPremisesSyncBehavior" -body '{ "isCloudManaged": true }' 
+    function SourceOfAuthority {
+        param (
+            [string]$GroupId
+        )
+        $SoAStatus = Invoke-MgGraphrequest `
+            -Method GET `
+            -Uri "https://graph.microsoft.com/beta/groups/{$GroupId}/onPremisesSyncBehavior?$select=isCloudManaged"
+        return $SoAStatus.isCloudManaged
+    }
+}
+
+
+Process {
+    if ((SourceOfAuthority -GroupId $GroupId) -eq $False) {
+        Write-Host "$Group is currently On-Prem managed, changing SoA to cloud"
+        Invoke-MgGraphrequest `
+            -Method PATCH `
+            -Uri "https://graph.microsoft.com/beta/groups/{$GroupId}/onPremisesSyncBehavior" `
+            -Body '{ "isCloudManaged": true }'
+            if ((SourceOfAuthority -GroupId $GroupId) -eq $True) {
+                Write-Host "Source Of Authority successfully changed to Cloud"
+
+            } else {
+                Write-Host "Source Of Authority change failed"
+
+            }
+    } else {
+        Write-Host "$Group is already cloud managed"
+    }
+}
+
+
+End {
+    Disconnect-MgGraph
+}
