@@ -81,6 +81,7 @@ foreach ($user in $users) {
         -Path (Path) `
         -SamAccountName (SamAccount).ToLower() `
         -Email (($user.Name -split ' ')[0] + "." + ($user.Name -split ' ')[-1] + "@" + (Complete-Suffix)).ToLower() `
+        -UserPrincipalName (($user.Name -split ' ')[0] + "." + ($user.Name -split ' ')[-1] + "@" + (Complete-Suffix)).ToLower() `
         -Company $user.Company `
         -Description $user.Costcenter `
         -Department $user.Department `
