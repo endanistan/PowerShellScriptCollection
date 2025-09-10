@@ -45,7 +45,7 @@ foreach ($user in $users) {
             "$AB United Kingdom" { return "$AB.co.uk" }
         }
     }
-
+    ##if trying to add a user with a givenname shorter than 3 letters or lastname shorter than 2 will throw an error, also no error handling if it fails to find a SamAccountName for too long $first.Substring goes into negative.
     function SamAccount {
 
         $first = ($User.name -split ' ')[0]
