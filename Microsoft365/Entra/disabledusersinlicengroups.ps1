@@ -41,9 +41,9 @@ function Get-DisabledUsersInGroup {
 		$DisabledUsers.Id -contains $_.Id
 	}
 	if ($RemoveUsers) {
-		foreach ($User in $DisabledInGroup) {
+		foreach ($User in $DisabledInGroup) { 
 			Write-Host "Removing user $($User.UserPrincipalName) from group $GroupName" -ForegroundColor Yellow
-			Remove-MgGroupMember -GroupId $GroupId -MemberId $User.Id
+			Remove-MgGroupMemberDirectoryObjectByRef -GroupId $GroupId -DirectoryObjectId $User.Id #Can't get this to work; keep getting access denied. Don't understand which permissions are required
 		}
 	} else{
 		return $DisabledInGroup
