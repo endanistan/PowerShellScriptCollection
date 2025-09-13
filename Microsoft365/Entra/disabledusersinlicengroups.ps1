@@ -36,11 +36,8 @@ function Get-DisabledUsersInGroup {
 	)
 
 	$GroupId = (Get-MgGroup -Filter "displayName eq '$GroupName'").Id
-
-	$GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All |
-		Select-Object Id, UserPrincipalName
-
-   $DisabledInGroup = $GroupMembers | Where-Object {
+	$GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All | Select-Object Id, UserPrincipalName
+	$DisabledInGroup = $GroupMembers | Where-Object {
 		$DisabledUsers.Id -contains $_.Id
 	}
 	if ($RemoveUsers) {
@@ -53,7 +50,12 @@ function Get-DisabledUsersInGroup {
 	}
 }
 
-if (-not $RemoveUsers) {
+if ($RemoveUsers) {
+	foreach ($Group in $Groups) {
+		Write-Host "Processing group $Group" -ForegroundColor Cyan
+		Get-DisabledUsersInGroup -GroupName $Group -RemoveUsers
+	}
+} else {
 	foreach ($Group in $Groups) {
 		Write-Host "Processing group $Group" -ForegroundColor Cyan
 		$DisabledInGroup = Get-DisabledUsersInGroup -GroupName $Group
@@ -67,10 +69,5 @@ if (-not $RemoveUsers) {
 				Write-Host "Something went wrong, file '$path\$Group-DisabledUsers.csv' not created" -ForegroundColor Red
 			}
 		}
-	}
-} else {
-	foreach ($Group in $Groups) {
-		Write-Host "Processing group $Group" -ForegroundColor Cyan
-		$DisabledInGroup = Get-DisabledUsersInGroup -GroupName $Group -RemoveUsers
 	}
 }
