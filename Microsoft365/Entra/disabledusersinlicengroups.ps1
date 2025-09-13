@@ -1,3 +1,8 @@
+Param(
+	[Parameter(Mandatory = $True)][string[]]$Groups,
+	[Parameter(Mandatory = $false)][switch]$RemoveUsers
+)
+
 		$SecretValue = 
 		#$ClientSecret = 
 		$ClientID = 
@@ -20,29 +25,52 @@
 	
 		Connect-MgGraph -AccessToken $SecureToken -NoWelcome
 
-$csvpath
-
-$Groups = @{
-    "GroupName" = "GroupId"
-	"GroupName" = "GroupId"
-	"GroupName" = "GroupId"
-}
-
+$path = "$ENV:USERPROFILE\OneDrive\Desktop\"
 $DisabledUsers = Get-MgUser -Filter "accountEnabled eq false" -All |
     Select-Object Id, UserPrincipalName
 
-foreach ($Group in $Groups.GetEnumerator()) {
-    $GroupName = $Group.Key
-    $GroupId   = $Group.Value
+function Get-DisabledUsersInGroup {
+	param (
+		[string]$GroupName,
+		[switch]$RemoveUsers
+	)
 
-    Write-Host "Now processing group '$GroupName'..." -ForegroundColor Cyan
+	$GroupId = (Get-MgGroup -Filter "displayName eq '$GroupName'").Id
 
-    $GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All |
-        Select-Object Id, UserPrincipalName
+	$GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All |
+		Select-Object Id, UserPrincipalName
 
    $DisabledInGroup = $GroupMembers | Where-Object {
-        $DisabledUsers.Id -contains $_.Id
-    }
+		$DisabledUsers.Id -contains $_.Id
+	}
+	if ($RemoveUsers) {
+		foreach ($User in $DisabledInGroup) {
+			Write-Host "Removing user $($User.UserPrincipalName) from group $GroupName" -ForegroundColor Yellow
+			Remove-MgGroupMember -GroupId $GroupId -MemberId $User.Id
+		}
+	} else{
+		return $DisabledInGroup
+	}
+}
 
-    $DisabledInGroup | Select-Object UserPrincipalName | Export-Csv -Path $csvpath -Delimiter ";" -NoTypeInformation
+if (-not $RemoveUsers) {
+	foreach ($Group in $Groups) {
+		Write-Host "Processing group $Group" -ForegroundColor Cyan
+		$DisabledInGroup = Get-DisabledUsersInGroup -GroupName $Group
+		if (Test-Path "$path\$Group-DisabledUsers.csv") {
+			Remove-Item "$path\$Group-DisabledUsers.csv"
+		} else {
+			$DisabledInGroup | Select-Object UserPrincipalName | Export-Csv -Path $path -Delimiter ";" -NoTypeInformation
+			if (Test-Path "$path\$Group-DisabledUsers.csv") {
+				Write-Host "Output exported to '$path\$Group-DisabledUsers.csv'" -ForegroundColor Green
+			} else {
+				Write-Host "Something went wrong, file '$path\$Group-DisabledUsers.csv' not created" -ForegroundColor Red
+			}
+		}
+	}
+} else {
+	foreach ($Group in $Groups) {
+		Write-Host "Processing group $Group" -ForegroundColor Cyan
+		$DisabledInGroup = Get-DisabledUsersInGroup -GroupName $Group -RemoveUsers
+	}
 }
