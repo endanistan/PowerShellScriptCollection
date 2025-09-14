@@ -1,6 +1,5 @@
 Param(
-	[Parameter(Mandatory = $True)][string[]]$Groups,
-	[Parameter(Mandatory = $false)][switch]$RemoveUsers
+	[Parameter(Mandatory = $True)][string[]]$Groups
 )
 
 		$SecretValue = 
@@ -25,49 +24,30 @@ Param(
 	
 		Connect-MgGraph -AccessToken $SecureToken -NoWelcome
 
-$path = "$ENV:USERPROFILE\OneDrive\Desktop\"
-$DisabledUsers = Get-MgUser -Filter "accountEnabled eq false" -All |
-    Select-Object Id, UserPrincipalName
-
-function Get-DisabledUsersInGroup {
+function Get-DisabledUserInGroup {
 	param (
-		[string]$GroupName,
-		[switch]$RemoveUsers
-	)
-
-	$GroupId = (Get-MgGroup -Filter "displayName eq '$GroupName'").Id
-	$GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All | Select-Object Id, UserPrincipalName
-	$DisabledInGroup = $GroupMembers | Where-Object {
-		$DisabledUsers.Id -contains $_.Id
-	}
-	if ($RemoveUsers) {
-		foreach ($User in $DisabledInGroup) {
-			Write-Host "Removing user $($User.UserPrincipalName) from group $GroupName" -ForegroundColor Yellow
-			Remove-MgGroupMember -GroupId $GroupId -MemberId $User.Id
+		[string]$GroupName
+	)	
+		foreach ($DisabledUser in $DisabledUsers) {
+			$GroupId = (Get-MgGroup -Filter "displayName eq '$GroupName'").Id
+			$GroupMembers = Get-MgGroupMemberAsUser -GroupId $GroupId -All | Select-Object Id, UserPrincipalName
+			$DisabledInGroup = $GroupMembers | Where-Object { $DisabledUsers.Id -contains $_.Id}
 		}
-	} else{
 		return $DisabledInGroup
-	}
 }
 
-if ($RemoveUsers) {
+
+	$path = "$ENV:USERPROFILE"
+	$DisabledUsers = Get-MgUser -Filter "accountEnabled eq false" -All | Select-Object Id, UserPrincipalName
+
 	foreach ($Group in $Groups) {
 		Write-Host "Processing group $Group" -ForegroundColor Cyan
-		Get-DisabledUsersInGroup -GroupName $Group -RemoveUsers
-	}
-} else {
-	foreach ($Group in $Groups) {
-		Write-Host "Processing group $Group" -ForegroundColor Cyan
-		$DisabledInGroup = Get-DisabledUsersInGroup -GroupName $Group
+		$DisabledInGroup = Get-DisabledUserInGroup -GroupName $Group
 		if (Test-Path "$path\$Group-DisabledUsers.csv") {
 			Remove-Item "$path\$Group-DisabledUsers.csv"
-		} else {
-			$DisabledInGroup | Select-Object UserPrincipalName | Export-Csv -Path $path -Delimiter ";" -NoTypeInformation
+		}
+			$DisabledInGroup | Select-Object UserPrincipalName | Export-Csv -Path "$path\$Group-DisabledUsers.csv" -Delimiter ";" -NoTypeInformation
 			if (Test-Path "$path\$Group-DisabledUsers.csv") {
 				Write-Host "Output exported to '$path\$Group-DisabledUsers.csv'" -ForegroundColor Green
-			} else {
-				Write-Host "Something went wrong, file '$path\$Group-DisabledUsers.csv' not created" -ForegroundColor Red
 			}
-		}
 	}
-}
