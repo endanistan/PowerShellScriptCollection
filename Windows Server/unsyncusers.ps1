@@ -21,10 +21,8 @@
         foreach ($company in $PossibleOu.Keys) {
             if ($DistinguishedName -match $company) {
                 return $PossibleOU[$company]
-            } else {
-                return $null
             }
-        } 
+        } return $null
     }
 
     $remaining = @()
