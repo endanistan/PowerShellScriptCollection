@@ -1,100 +1,57 @@
-#CSV file must contain the following headers: Name;Company;Costcenter;Department;Title;Region
-
-Param (
-    [Parameter(Mandatory = $True)][string]$AB
+param (
+    [Parameter(Mandatory = $true)][String]$CSVPath
 )
 
+function UserPassword {
+    $Adjectives = @("Ferocious", "Sabertoothed", "Maneating", "Bloodthirsty", "Vengeful", "Merciless", "Wrathful", "Hellbound", "Soulharvesting", "Crazed", "Blessed", "Flesheating")
+    $Nouns = @("Goldfish", "Froglet", "Bumblebee", "Pig", "Capybara", "Toad", "Rabbit", "Lamb", "Crab", "Shrimp", "Starfish")
+    $Numbers = @("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+    $Characters = @("#", "%", "!", "?", "+", "\", "*", "$", "/")
+    $RandomAdjective = Get-Random $Adjectives
+    $RandomNoun = Get-Random $Nouns
+    $RandomNumber = Get-Random $Numbers
+    $RandomCharacter = Get-Random $Characters
+    $RandomEasyToType = -join ($RandomAdjective, $RandomNoun, $RandomNumber, $RandomCharacter)
+    return $RandomEasyToType
+}
 
-$users = import-csv -path ".\users.csv" -Delimiter ";"
 
-
-foreach ($user in $users) { 
-
-    Write-Host "Attempting to create user $($user.Name)" -ForegroundColor Cyan
-
-    $path = "OU=Users,OU=HS,DC=$AB,DC=loc"
-
-    function Path {
-        switch ($user.Company) {
-            "$AB Sweden" { return "OU=$AB,OU=Sweden,$path" }
-            "$AB Group" { return "OU=Group,OU=Sweden,$path" }
-            "$AB Norway" { return "OU=$AB,OU=Norway,$path" }
-            "$AB Finland" { return "OU=$AB,OU=Finland,$path" }
-            "$AB Denmark" { return "OU=$AB,OU=Denmark,$path" }
-            "$AB Estonia" { return "OU=$AB,OU=Estonia,$path" }
-            "$AB Latvia" { return "OU=$AB,OU=Latvia,$path" }
-            "$AB France" { return "OU=$AB,OU=France,$path" }
-            "$AB Romania" { return "OU=$AB,OU=Romania,$path" }
-            "$AB Czech" { return "OU=$AB,OU=Czech,$path" }
-            "$AB United Kingdom" { return "OU=$AB,OU=United Kingdom,$path" }
-        }
+Import-Csv -Path $CSVpath -Delimiter ";" | ForEach-Object {
+    $password = UserPassword
+    $splat = @{
+        Name              = $_.DisplayName
+        DisplayName       = $_.DisplayName
+        GivenName         = ($_.DisplayName.Split(' ')[0])
+        Surname           = ($_.DisplayName.Split(' ')[-1])
+        SamAccountName    = $_.sam
+        Description       = $_.Description
+        Path              = $_.Path
+        Company           = $_.Company
+        EmailAddress      = $_.UserPrincipalName
+        UserPrincipalName = $_.UserPrincipalName
+        Title             = $_.Title
+        StreetAddress     = $_.Street
+        PostalCode        = $_.Zip
+        City              = $_.City
+        Office            = $_.City
+        AccountPassword   = (ConvertTo-SecureString -String $password -AsPlainText -Force)
     }
 
-    function Complete-Suffix {
-        switch ($user.Company){
-            "$AB Sweden" { return "$AB.se" }
-            "$AB Group" { return $AB + "group.com" }
-            "$AB Norway" { return "$AB.no" }
-            "$AB Finland" { return "$AB.fi" }
-            "$AB Denmark" { return "$AB.dk" }
-            "$AB Estonia" { return "$AB.ee" }
-            "$AB Latvia" { return "$AB.lv" }
-            "$AB France" { return "$AB.fr" }
-            "$AB Romania" { return "$AB.ro" }
-            "$AB Czech" { return "$AB.cz" }
-            "$AB United Kingdom" { return "$AB.co.uk" }
-        }
-    }
-    ##if trying to add a user with a givenname shorter than 3 letters or lastname shorter than 2 will throw an error, also no error handling if it fails to find a SamAccountName for too long $first.Substring goes into negative.
-    function SamAccount {
-
-        $first = ($User.name -split ' ')[0]
-        $last = ($User.name -split ' ')[-1]
-        $sam = $first.Substring(0,3) + $last.Substring(0,2)
-
-        try {
-            $trysam = Get-AdUser -Identity $sam -ErrorAction Stop
-        if ($user) {
-            $f = 3
-            $l = 2
-            While ($trysam) {
-                $f--
-                $l++
-                $sam = $first.Substring(0,$f) + $last.Substring(0,$l)
-                try {
-                    $trysam = Get-AdUser -Identity $sam -ErrorAction Stop
-                }
-                catch {
-                    return $sam
-                }
-            }
-        } } catch {
-            return $sam
-        }
-    }
-
-
-    New-ADUser `
-        -Name $user.Name `
-        -GivenName ($user.Name -split ' ')[0] `
-        -Surname ($user.Name -split ' ')[-1] `
-        -Path (Path) `
-        -SamAccountName (SamAccount).ToLower() `
-        -Email (($user.Name -split ' ')[0] + "." + ($user.Name -split ' ')[-1] + "@" + (Complete-Suffix)).ToLower() `
-        -UserPrincipalName (($user.Name -split ' ')[0] + "." + ($user.Name -split ' ')[-1] + "@" + (Complete-Suffix)).ToLower() `
-        -Company $user.Company `
-        -Description $user.Costcenter `
-        -Department $user.Department `
-        -Title $user.Title `
-    
+    $dn = $_.DisplayName
     try {
-        $trysam = Get-Aduser -filter "name -eq '$($user.Name)'" -ErrorAction Stop
-        if ($trysam) {
-            Write-Host "User $($user.Name) created successfully" -ForegroundColor Green
+        New-AdUser @splat -ErrorAction Stop
+    } catch {
+        Write-Error -Message "Unknown error creating aduser $dn"
+    }
+
+    try {
+        $CheckUser = Get-Aduser -identity $_.sam -ErrorAction Stop
+        if ($CheckUser) {
+            Write-Host "Confirmed creation of $dn with password $password"
         } else {
-            Write-Host "Failed to create user $($user.Name)" -ForegroundColor Red
+            Write-Host "Could not confirm creation of $dn"
         }
     } catch {
-        Write-Warning "Could not verify creation of user $($user.Name)"
+        Write-Error -Message "Could not confirm creation of $dn"
     }
 }
