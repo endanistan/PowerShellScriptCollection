@@ -1,3 +1,5 @@
+#Right now accounts appear to be created as disabled and does not require change password on next logon. Unsure what the issue is.
+
 param (
     [Parameter(Mandatory = $true)][String]$CSVPath
 )
@@ -34,24 +36,29 @@ Import-Csv -Path $CSVpath -Delimiter ";" | ForEach-Object {
         PostalCode        = $_.Zip
         City              = $_.City
         Office            = $_.City
-        AccountPassword   = (ConvertTo-SecureString -String $password -AsPlainText -Force)
     }
 
     $dn = $_.DisplayName
+
     try {
-        New-AdUser @splat -ErrorAction Stop
+        Write-Host "Attempting to creat user '$dn'..."
+        New-ADUser @splat -AccountPassword (ConvertTo-SecureString $password -AsPlainText -Force) `
+            -Enabled $true `
+            -ChangePasswordAtLogon $true `
+            -ErrorAction Stop
+
     } catch {
-        Write-Error -Message "Unknown error creating aduser $dn"
+        Write-Error -Message "Unknown error creating aduser '$dn'"
     }
 
     try {
         $CheckUser = Get-Aduser -identity $_.sam -ErrorAction Stop
         if ($CheckUser) {
-            Write-Host "Confirmed creation of $dn with password $password"
+            Write-Host "Confirmed creation of '$dn' with password '$password'"
         } else {
-            Write-Host "Could not confirm creation of $dn"
+            Write-Host "Could not confirm creation of '$dn'"
         }
     } catch {
-        Write-Error -Message "Could not confirm creation of $dn"
+        Write-Error -Message "Could not confirm creation of '$dn'"
     }
 }
