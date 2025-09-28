@@ -1,6 +1,4 @@
-#Right now accounts appear to be created as disabled and does not require change password on next logon. Unsure what the issue is.
-
-param (
+﻿param (
     [Parameter(Mandatory = $true)][String]$CSVPath
 )
 
